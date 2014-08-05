@@ -1,0 +1,21 @@
+{
+  "name": "node-ipcamera",
+  "version": "0.1.0",
+  "description": "IPCamera decoder",
+  "main": "index.js",
+  "dependencies": {
+    "commander": "latest",
+    "express": "latest"
+ },
+  "scripts": {
+   },
+  "repository": "",
+  "keywords": [
+    "Node.js",
+    "IPCam",
+    "decoder"
+  ],
+  "author": "Olivier Oeuillot",
+  "license": "BSD",
+  "readmeFilename": "README.md"
+}
