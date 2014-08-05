@@ -119,7 +119,10 @@ function newRequest() {
 	request.on('error', function(e) {
 		console.log('problem with request: ' + e.message);
 
-		newRequest();
+		if (e.code == 'ECONNREST') {
+			newRequest();
+			return;
+		}
 	});
 
 	request.end();
