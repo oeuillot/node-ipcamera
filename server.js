@@ -24,7 +24,7 @@ if (!program.ffmpeg) {
 	throw new Error("FFmpeg path must be specified");
 }
 
-program.ffmpegArgs = program.ffmpegArgs || "-an -f m4v -i - -r 5 -qmin 1 -qscale 2 -s 720x576 -f mjpeg -";
+program.ffmpegArgs = program.ffmpegArgs || "-v 0 -an -f m4v -i - -r 5 -qmin 1 -q:v 2 -s 720x576 -f mjpeg -";
 
 var videoURL = url.parse(program.url);
 videoURL.headers = {
@@ -34,8 +34,12 @@ videoURL.headers = {
 var lastMjpegStream;
 
 var request = http.request(videoURL, function(response) {
-	console.log('STATUS: ', response.statusCode);
-	console.log('HEADERS: ', response.headers);
+	// console.log('STATUS: ', response.statusCode);
+	// console.log('HEADERS: ', response.headers);
+
+	if (response.statusCode != 200) {
+		throw new Error("Invalid status code of response " + response.statusCode);
+	}
 
 	var mpegStream = new MpegStream();
 	if (false) {
@@ -45,10 +49,10 @@ var request = http.request(videoURL, function(response) {
 	}
 
 	var mjpegStream = new MjpegStream();
+	lastMjpegStream = mjpegStream;
 
 	var ipCamStream = new IPCamStream();
 
-	lastMjpegStream = mjpegStream;
 
 	var readable = response.pipe(ipCamStream).pipe(mpegStream);
 
@@ -107,6 +111,7 @@ app.get("/jpeg", function(req, res) {
 		res.writeHead(200, {
 			'Content-Type': 'image/jpeg',
 			'Content-Length': jpeg.size,
+			'Transfer-Encoding': 'chunked',
 			'Cache-Control': 'no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0'
 		});
 
