@@ -145,11 +145,12 @@ function newRequest() {
 		if (e.code == 'ECONNRESET') {
 			if (ffmpeg) {
 				ffmpeg.stdin.end();
-				
+
 				try {
 					ffmpeg.kill();
 				} catch (x) {
 				}
+				ffmpeg = null;
 			}
 
 			newRequest();
