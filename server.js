@@ -24,7 +24,7 @@ if (!program.ffmpeg) {
 	throw new Error("FFmpeg path must be specified");
 }
 
-program.ffmpegArgs = program.ffmpegArgs || "-v 0 -an -f m4v -i - -r 5 -qmin 1 -q:v 2 -s 720x576 -f mjpeg -";
+program.ffmpegArgs = program.ffmpegArgs || "-an -f m4v -i - -r 5 -qmin 1 -q:v 2 -s 720x576 -f mjpeg -";
 
 var videoURL = url.parse(program.url);
 videoURL.headers = {
