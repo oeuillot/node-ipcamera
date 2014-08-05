@@ -53,6 +53,15 @@ app.get("/mjpeg", function(req, res) {
 	});
 });
 
+app.get("/mjpeg.html", function(req, res) {
+
+	res.writeHead(200, {
+		'Content-Type': 'text/html'
+	});
+
+	res.end('<html><head></head><body><img style="width: 720px; height: 576px" src="mjpeg" /></body></html>');
+});
+
 app.get("/jpeg", function(req, res) {
 
 	lastJpegEventEmitter.once("jpeg", function sendJpeg(jpeg) {
@@ -68,6 +77,16 @@ app.get("/jpeg", function(req, res) {
 		res.end();
 	});
 });
+
+app.get("/jpeg.html", function(req, res) {
+
+	res.writeHead(200, {
+		'Content-Type': 'text/html'
+	});
+
+	res.end('<html><head></head><body><img style="width: 720px; height: 576px" src="jpeg" /></body></html>');
+});
+
 app.listen(program.port || 8080);
 
 newRequest();
@@ -78,6 +97,8 @@ function newRequest() {
 	videoURL.headers = {
 		accept: '*/*'
 	};
+
+	var ffmpeg;
 
 	var request = http.request(videoURL, function(response) {
 		// console.log('STATUS: ', response.statusCode);
@@ -98,7 +119,7 @@ function newRequest() {
 
 		var readable = response.pipe(ipCamStream).pipe(mpegStream);
 
-		var ffmpeg = child.spawn(program.ffmpeg, program.ffmpegArgs.split(" "));
+		ffmpeg = child.spawn(program.ffmpeg, program.ffmpegArgs.split(" "));
 
 		var cnt1 = 0;
 		var cnt2 = 0;
@@ -122,6 +143,13 @@ function newRequest() {
 		console.log('problem with request: ' + e.message);
 
 		if (e.code == 'ECONNRESET') {
+			if (ffmpeg) {
+				try {
+					ffmpeg.kill();
+				} catch (x) {
+				}
+			}
+
 			newRequest();
 			return;
 		}
