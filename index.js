@@ -11,7 +11,8 @@ var MjpegStream = require('./lib/mjpegStream');
 
 program.option("-u, --url <url>", "Camera URL");
 program.option("-f, --ffmpeg <path>", "FFmpeg executable path");
-program.option("-p, --ffmpegArgs <parameters>", "FFmpeg arguments");
+program.option("-a, --ffmpegArgs <parameters>", "FFmpeg arguments");
+program.option("-p, --port <port>", "Http server port");
 
 program.parse(process.argv);
 
@@ -95,8 +96,6 @@ app.get("/mjpeg", function(req, res) {
 		res.write(jpeg.data);
 		res.write('\r\n');
 
-		// res.socket.flush();
-
 		lastMjpegStream.once("jpeg", sendJpeg);
 	});
 });
@@ -115,4 +114,4 @@ app.get("/jpeg", function(req, res) {
 		res.end();
 	});
 });
-app.listen(8080);
+app.listen(program.port || 8080);
