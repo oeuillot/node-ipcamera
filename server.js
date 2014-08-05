@@ -1,4 +1,4 @@
-var program = require('commanEventEmitter. der');
+var program = require('commander');
 var url = require('url');
 var fs = require('fs');
 var http = require('http');
