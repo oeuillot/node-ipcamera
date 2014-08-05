@@ -14,6 +14,7 @@ program.option("-u, --url <url>", "Camera URL");
 program.option("-f, --ffmpeg <path>", "FFmpeg executable path");
 program.option("-a, --ffmpegArgs <parameters>", "FFmpeg arguments");
 program.option("-p, --port <port>", "Http server port");
+program.option("-r, --rate <rate>", "FFMpeg video rate");
 
 program.parse(process.argv);
 
@@ -25,7 +26,8 @@ if (!program.ffmpeg) {
 	throw new Error("FFmpeg path must be specified");
 }
 
-program.ffmpegArgs = program.ffmpegArgs || "-an -f m4v -i - -r 5 -qmin 1 -q:v 2 -s 720x576 -f mjpeg -";
+program.ffmpegArgs = program.ffmpegArgs ||
+		("-an -f m4v -i - -r " + (program.rate || 5) + " -qmin 1 -q:v 2 -s 720x576 -f mjpeg -");
 
 var lastJpegEventEmitter = new Events.EventEmitter();
 
