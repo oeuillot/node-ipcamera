@@ -99,6 +99,38 @@ function newRequest() {
 	};
 
 	var ffmpeg;
+	var running = true;
+	var lastTimestamp;
+	var watchdogInterval;
+
+	function stop(response, restart) {
+		if (!running) {
+			return;
+		}
+		running = false;
+
+		if (watchdogInterval) {
+			clearInterval(watchdogInterval);
+		}
+
+		if (ffmpeg) {
+			ffmpeg.stdin.end();
+
+			try {
+				ffmpeg.kill('SIGTERM');
+			} catch (x) {
+			}
+			ffmpeg = null;
+		}
+
+		if (response) {
+			response.end();
+		}
+
+		if (restart) {
+			setImmediate(newRequest);
+		}
+	}
 
 	var request = http.request(videoURL, function(response) {
 		// console.log('STATUS: ', response.statusCode);
@@ -112,8 +144,20 @@ function newRequest() {
 
 		var mjpegStream = new MjpegStream();
 		mjpegStream.on('jpeg', function(jpeg) {
+			lastTimestamp = Date.now();
+
 			lastJpegEventEmitter.emit('jpeg', jpeg);
 		});
+		watchdogInterval = setInterval(function() {
+			if (Date.now() - lastTimestamp < 4000) {
+				return;
+			}
+
+			console.log("Watchdog detect problem ...")
+
+			stop(response, true);
+
+		}, 1000 * 5);
 
 		var ipCamStream = new IPCamStream();
 
@@ -121,41 +165,33 @@ function newRequest() {
 
 		ffmpeg = child.spawn(program.ffmpeg, program.ffmpegArgs.split(" "));
 
-		var cnt1 = 0;
-		var cnt2 = 0;
-
-		// readable.pipe(ffmpeg.stdin);
 		readable.on("data", function(data) {
-			// console.log("Send mpeg " + (cnt1++));
 			ffmpeg.stdin.write(data);
 		});
 
 		ffmpeg.stdout.on('data', function(data) {
-			// console.log("Get jpeg " + (cnt2++));
-
 			mjpegStream.write(data);
 		});
 
 		ffmpeg.stderr.pipe(process.stderr);
+
+		ffmpeg.on("exit", function() {
+			console.log("Process exited ! Restart conversion ...")
+
+			stop(response, true);
+		});
+
 	});
 
 	request.on('error', function(e) {
 		console.log('problem with request: ' + e.message);
 
 		if (e.code == 'ECONNRESET') {
-			if (ffmpeg) {
-				ffmpeg.stdin.end();
-
-				try {
-					ffmpeg.kill();
-				} catch (x) {
-				}
-				ffmpeg = null;
-			}
-
-			newRequest();
+			stop(null, true);
 			return;
 		}
+
+		stop();
 	});
 
 	request.end();
