@@ -8,7 +8,7 @@ var Events = require('events');
 
 var IPCamDecoderStream = require('./lib/ipCamDecoderStream');
 var MpegDecoderStream = require('./lib/mpegDecoderStream');
-var MjpeDecodergStream = require('./lib/mjpegDecoderStream');
+var MjpegDecoderStream = require('./lib/mjpegDecoderStream');
 
 program.option("-u, --url <url>", "Camera URL");
 program.option("-f, --ffmpeg <path>", "FFmpeg executable path");
