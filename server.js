@@ -6,9 +6,9 @@ var child = require('child_process');
 var express = require('express');
 var Events = require('events');
 
-var IPCamStream = require('./lib/ipCamStream');
-var MpegStream = require('./lib/mpegStream');
-var MjpegStream = require('./lib/mjpegStream');
+var IPCamDecoderStream = require('./lib/ipCamDecoderStream');
+var MpegDecoderStream = require('./lib/mpegDecoderStream');
+var MjpeDecodergStream = require('./lib/mjpegDecoderStream');
 
 program.option("-u, --url <url>", "Camera URL");
 program.option("-f, --ffmpeg <path>", "FFmpeg executable path");
@@ -140,10 +140,10 @@ function newRequest() {
 			throw new Error("Invalid status code of response " + response.statusCode);
 		}
 
-		var mpegStream = new MpegStream();
+		var mpegDecoderStream = new MpegDecoderStream();
 
-		var mjpegStream = new MjpegStream();
-		mjpegStream.on('jpeg', function(jpeg) {
+		var mjpegDecoderStream = new MjpegDecoderStream();
+		mjpegDecoderStream.on('jpeg', function(jpeg) {
 			lastTimestamp = Date.now();
 
 			lastJpegEventEmitter.emit('jpeg', jpeg);
@@ -159,9 +159,9 @@ function newRequest() {
 
 		}, 1000 * 5);
 
-		var ipCamStream = new IPCamStream();
+		var ipCamDecoderStream = new IPCamDecoderStream();
 
-		var readable = response.pipe(ipCamStream).pipe(mpegStream);
+		var readable = response.pipe(ipCamDecoderStream).pipe(mpegDecoderStream);
 
 		ffmpeg = child.spawn(program.ffmpeg, program.ffmpegArgs.split(" "));
 
@@ -170,7 +170,7 @@ function newRequest() {
 		});
 
 		ffmpeg.stdout.on('data', function(data) {
-			mjpegStream.write(data);
+			mjpegDecoderStream.write(data);
 		});
 
 		ffmpeg.stderr.pipe(process.stderr);
