@@ -149,7 +149,7 @@ function newRequest() {
 			lastJpegEventEmitter.emit('jpeg', jpeg);
 		});
 		watchdogInterval = setInterval(function() {
-			if (Date.now() - lastTimestamp < 4000) {
+			if (Date.now() - lastTimestamp < 1000 * 20) {
 				return;
 			}
 
