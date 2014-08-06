@@ -124,7 +124,7 @@ function newRequest() {
 		}
 
 		if (response) {
-			response.end();
+			response.close();
 		}
 
 		if (restart) {
