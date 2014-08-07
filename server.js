@@ -102,6 +102,16 @@ function newRequest() {
 	var running = true;
 	var lastTimestamp;
 	var watchdogInterval;
+	var mpegDecoderStream = new MpegDecoderStream();
+	var mjpegDecoderStream = new MjpegDecoderStream();
+	var ipCamDecoderStream = new IPCamDecoderStream();
+
+
+	mjpegDecoderStream.on('jpeg', function(jpeg) {
+		lastTimestamp = Date.now();
+
+		lastJpegEventEmitter.emit('jpeg', jpeg);
+	});
 
 	function stop(response, restart) {
 		if (!running) {
@@ -122,6 +132,10 @@ function newRequest() {
 			}
 			ffmpeg = null;
 		}
+		
+		mpegDecoderStream.destroy();
+		mjpegDecoderStream.destroy();
+		ipCamDecoderStream.destroy();
 
 		if (response) {
 			response.socket.destroy();
@@ -139,15 +153,6 @@ function newRequest() {
 		if (response.statusCode != 200) {
 			throw new Error("Invalid status code of response " + response.statusCode);
 		}
-
-		var mpegDecoderStream = new MpegDecoderStream();
-
-		var mjpegDecoderStream = new MjpegDecoderStream();
-		mjpegDecoderStream.on('jpeg', function(jpeg) {
-			lastTimestamp = Date.now();
-
-			lastJpegEventEmitter.emit('jpeg', jpeg);
-		});
 		watchdogInterval = setInterval(function() {
 			if (Date.now() - lastTimestamp < 1000 * 20) {
 				return;
@@ -158,8 +163,6 @@ function newRequest() {
 			stop(response, true);
 
 		}, 1000 * 5);
-
-		var ipCamDecoderStream = new IPCamDecoderStream();
 
 		var readable = response.pipe(ipCamDecoderStream).pipe(mpegDecoderStream);
 
