@@ -124,7 +124,7 @@ function newRequest() {
 		}
 
 		if (response) {
-			response.close();
+			response.socket.destroy();
 		}
 
 		if (restart) {
