@@ -14,7 +14,10 @@ program.option("-u, --url <url>", "Camera URL");
 program.option("-f, --ffmpeg <path>", "FFmpeg executable path");
 program.option("-a, --ffmpegArgs <parameters>", "FFmpeg arguments");
 program.option("-p, --port <port>", "Http server port");
-program.option("-r, --rate <rate>", "FFMpeg video rate");
+program.option("-r, --outputRate <rate>", "FFMpeg video output rate");
+program.option("--inputRate <rate>", "FFMpeg video input rate");
+program.option("--localtime", "Add localtime on frame");
+program.option("--fontPath <fontPath>", "Font path used by localtime");
 
 program.parse(process.argv);
 
@@ -27,7 +30,23 @@ if (!program.ffmpeg) {
 }
 
 program.ffmpegArgs = program.ffmpegArgs ||
-		("-an -r 10 -f m4v -i - -r " + (program.rate || 10) + " -qmin 1 -q:v 2 -s 720x576 -f mjpeg -");
+		("-an -r " + (program.inputRate || 20) + " -f m4v -i - -r " + (program.outputRate || 20) + " -qmin 1 -q:v 2 -s 720x576 -f mjpeg");
+
+var ffmpegArgs = program.ffmpegArgs.match(/([A-Za-z0-9\-\+:]+)|"(?:\\"|[^"])+"|\-/g);
+for (var i = ffmpegArgs.length - 1; i; i--) {
+	ffmpegArgs[i] = ffmpegArgs[i].replace(/"/g, "");
+}
+
+debugger;
+
+if (program.localtime && program.fontPath) {
+	ffmpegArgs.push("-vf", "drawtext=text='%{localtime}': fontfile='" + program.fontPath +
+			"': fontsize=20: fontcolor=white@1: x=8: y=8");
+}
+
+ffmpegArgs.push("-")
+
+console.log("args=", ffmpegArgs);
 
 var lastJpegEventEmitter = new Events.EventEmitter();
 
@@ -106,7 +125,6 @@ function newRequest() {
 	var mjpegDecoderStream = new MjpegDecoderStream();
 	var ipCamDecoderStream = new IPCamDecoderStream();
 
-
 	mjpegDecoderStream.on('jpeg', function(jpeg) {
 		lastTimestamp = Date.now();
 
@@ -132,7 +150,7 @@ function newRequest() {
 			}
 			ffmpeg = null;
 		}
-		
+
 		mpegDecoderStream.destroy();
 		mjpegDecoderStream.destroy();
 		ipCamDecoderStream.destroy();
@@ -166,7 +184,7 @@ function newRequest() {
 
 		var readable = response.pipe(ipCamDecoderStream).pipe(mpegDecoderStream);
 
-		ffmpeg = child.spawn(program.ffmpeg, program.ffmpegArgs.split(" "));
+		ffmpeg = child.spawn(program.ffmpeg, ffmpegArgs);
 
 		readable.on("data", function(data) {
 			ffmpeg.stdin.write(data);
