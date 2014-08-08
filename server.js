@@ -6,6 +6,8 @@ var child = require('child_process');
 var express = require('express');
 var Events = require('events');
 
+var NO_CACHE_CONTROL = "no-cache, private, no-store, must-revalidate, max-stale=0, max-age=1,post-check=0, pre-check=0";
+
 var IPCamDecoderStream = require('./lib/ipCamDecoderStream');
 var MpegDecoderStream = require('./lib/mpegDecoderStream');
 var MjpegDecoderStream = require('./lib/mjpegDecoderStream');
@@ -37,8 +39,6 @@ for (var i = ffmpegArgs.length - 1; i; i--) {
 	ffmpegArgs[i] = ffmpegArgs[i].replace(/"/g, "");
 }
 
-debugger;
-
 if (program.localtime && program.fontPath) {
 	ffmpegArgs.push("-vf", "drawtext=text='%{localtime}': fontfile='" + program.fontPath +
 			"': fontsize=20: fontcolor=white@1: x=8: y=8");
@@ -46,7 +46,7 @@ if (program.localtime && program.fontPath) {
 
 ffmpegArgs.push("-")
 
-console.log("args=", ffmpegArgs);
+// console.log("args=", ffmpegArgs);
 
 var lastJpegEventEmitter = new Events.EventEmitter();
 
@@ -64,7 +64,8 @@ app.get("/mjpeg", function(req, res) {
 
 	lastJpegEventEmitter.once("jpeg", function sendJpeg(jpeg) {
 
-		res.write(mimeBoudary + '\r\nContent-Type: image/jpeg\r\nContent-Length: ' + jpeg.size + '\r\n\r\n');
+		res.write(mimeBoudary + '\r\nContent-Type: image/jpeg\r\nContent-Length: ' + jpeg.size + '\r\nCache-Control: ' +
+				NO_CACHE_CONTROL + '\r\n\r\n');
 		res.write(jpeg.data);
 		res.write('\r\n');
 
@@ -73,12 +74,7 @@ app.get("/mjpeg", function(req, res) {
 });
 
 app.get("/mjpeg.html", function(req, res) {
-
-	res.writeHead(200, {
-		'Content-Type': 'text/html'
-	});
-
-	res.end('<html><head></head><body><img style="width: 720px; height: 576px" src="mjpeg" /></body></html>');
+	res.sendfile('pages/mjpeg.html');
 });
 
 app.get("/jpeg", function(req, res) {
@@ -89,7 +85,7 @@ app.get("/jpeg", function(req, res) {
 			'Content-Type': 'image/jpeg',
 			'Content-Length': jpeg.size,
 			'Transfer-Encoding': 'chunked',
-			'Cache-Control': 'no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0'
+			'Cache-Control': NO_CACHE_CONTROL
 		});
 
 		res.write(jpeg.data);
@@ -98,12 +94,11 @@ app.get("/jpeg", function(req, res) {
 });
 
 app.get("/jpeg.html", function(req, res) {
+	res.sendfile('pages/jpeg.html');
+});
 
-	res.writeHead(200, {
-		'Content-Type': 'text/html'
-	});
-
-	res.end('<html><head></head><body><img style="width: 720px; height: 576px" src="jpeg" /></body></html>');
+app.get("/animjpeg.html", function(req, res) {
+	res.sendfile('pages/animjpeg.html');
 });
 
 app.listen(program.port || 8080);
