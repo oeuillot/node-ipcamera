@@ -1,0 +1,40 @@
+<html>
+<head>
+<script type="text/javascript">
+	function swapJPEG(id, src) {
+		var div = document.getElementById(id);
+		var ds=div.style;
+
+		function loadImg() {
+			var img = document.createElement("IMG");
+			var is = img.style;
+			is.width = ds.width;
+			is.height = ds.height;
+			is.border = "0";
+			is.display = "none";
+
+			img.src = src + "?" + new Date();
+			img.onload = function() {
+				if (div.childNodes.length > 1) {
+					div.removeChild(div.firstChild);
+				}
+
+				is.display = "block";
+
+				setTimeout(loadImg, 10);
+			};
+			div.appendChild(img);
+		}
+
+		loadImg();
+	}
+</script>
+</head>
+<body>
+	<div id="mjpeg" style="width: 720px; height: 576px"></div>
+
+	<script type="text/javascript">
+		swapJPEG("mjpeg", "/jpeg");
+	</script>
+</body>
+</html>
