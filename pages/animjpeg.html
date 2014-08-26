@@ -15,11 +15,15 @@
 
 			img.src = src + "?" + new Date();
 			img.onload = function() {
+				is.display = "block";
 				if (div.childNodes.length > 1) {
-					div.removeChild(div.firstChild);
+					var fc=div.firstChild;
+					fc.style.display="none";
+					setTimeout(function() {
+						div.removeChild(fc);
+					}, 50);
 				}
 
-				is.display = "block";
 
 				setTimeout(loadImg, 10);
 			};
