@@ -23,6 +23,7 @@ program.option("--fontPath <fontPath>", "Font path used by localtime");
 program.option("--storePath <storePath>", "Path where to store images");
 program.option("--storeTimeout <minutes>", "Delay after which the images were deleted");
 program.option("--storeFPS <storeFPS>", "Stored frames per second", parseInt);
+program.option("--storeFileDuration <second>", "Duration of each file", parseInt);
 
 program.parse(process.argv);
 
@@ -233,7 +234,8 @@ function newRequest() {
 if (program.storePath) {
 	var storeEngine = new StoreEngine({
 		path: program.storePath,
-		framePerSecond: program.storeFPS
+		framePerSecond: program.storeFPS,
+		fileDuration: program.storeFileDuration
 	});
 
 	storeEngine.start(lastJpegEventEmitter);
