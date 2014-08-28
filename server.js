@@ -71,8 +71,8 @@ app.get("/mjpeg", function(req, res) {
 		var headers = 'Content-Type: image/jpeg\r\nContent-Length: ' + jpeg.size + '\r\nCache-Control: ' +
 				NO_CACHE_CONTROL + '\r\n';
 
-		if (jpeg.timestamp) {
-			headers += 'X-Image-Date: ' + (new Date(jpeg.timestamp)).toISOString() + '\r\n';
+		if (jpeg.date) {
+			headers += 'X-Image-Date: ' + jpeg.date.toISOString() + '\r\n';
 		}
 
 		res.write(mimeBoudary + '\r\n' + headers + '\r\n');
@@ -98,8 +98,8 @@ app.get("/jpeg", function(req, res) {
 			'Cache-Control': NO_CACHE_CONTROL,
 		};
 
-		if (jpeg.timestamp) {
-			headers['X-Image-Date'] = (new Date(jpeg.timestamp)).toISOString();
+		if (jpeg.date) {
+			headers['X-Image-Date'] = jpeg.date.toISOString();
 		}
 
 		res.writeHead(200, headers);

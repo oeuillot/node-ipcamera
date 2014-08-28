@@ -2,7 +2,7 @@
   "name": "node-ipcamera",
   "version": "0.1.0",
   "description": "IPCamera decoder",
-  "main": "index.js",
+  "main": "lib/API.js",
   "dependencies": {
     "commander": "latest",
     "express": "latest"
