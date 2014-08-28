@@ -53,6 +53,7 @@ ffmpegArgs.push("-")
 // console.log("args=", ffmpegArgs);
 
 var lastJpegEventEmitter = new Events.EventEmitter();
+lastJpegEventEmitter.setMaxListeners(256);
 
 var mimeBoudary = "--OLIVIERVAENVACANCES--";
 
