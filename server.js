@@ -8,6 +8,7 @@ var Events = require('events');
 var IPCamDecoderStream = require('./lib/ipCamDecoderStream');
 var MpegDecoderStream = require('./lib/mpegDecoderStream');
 var MjpegDecoderStream = require('./lib/mjpegDecoderStream');
+var MultipartMjpegEncoderStream = require('./lib/multipartMjpegEncoderStream');
 var StoreEngine = require('./lib/storeEngine');
 
 var NO_CACHE_CONTROL = "no-cache, private, no-store, must-revalidate, max-stale=0, max-age=1,post-check=0, pre-check=0";
@@ -55,32 +56,34 @@ ffmpegArgs.push("-")
 var lastJpegEventEmitter = new Events.EventEmitter();
 lastJpegEventEmitter.setMaxListeners(256);
 
-var mimeBoudary = "--OLIVIERVAENVACANCES--";
+var mimeBoundary = "--OLIVIERVAENVACANCES--";
 
 var app = express();
 
 app.get("/mjpeg", function(req, res) {
 
 	res.writeHead(200, {
-		'Content-Type': 'multipart/x-mixed-replace; boundary="' + mimeBoudary + '"',
+		'Content-Type': 'multipart/x-mixed-replace; boundary="' + mimeBoundary + '"',
 		'Transfer-Encoding': 'chunked',
 		'Cache-Control': NO_CACHE_CONTROL
 	});
 
+	var stream = new MultipartMjpegEncoderStream({
+		generateHttpHeader: false,
+		mimeBoundary: mimeBoundary
+	}, res);
+
 	lastJpegEventEmitter.once("jpeg", function sendJpeg(jpeg) {
 
-		var headers = 'Content-Type: image/jpeg\r\nContent-Length: ' + jpeg.size + '\r\nCache-Control: ' +
-				NO_CACHE_CONTROL + '\r\n';
+		stream.writeJpeg(jpeg, function(error) {
+			if (error) {
+				console.error(error);
+				res.end();
+				return;
+			}
 
-		if (jpeg.date) {
-			headers += 'X-Image-Date: ' + jpeg.date.toISOString() + '\r\n';
-		}
-
-		res.write(mimeBoudary + '\r\n' + headers + '\r\n');
-		res.write(jpeg.data);
-		res.write('\r\n');
-
-		lastJpegEventEmitter.once("jpeg", sendJpeg);
+			lastJpegEventEmitter.once("jpeg", sendJpeg);
+		});
 	});
 });
 
