@@ -11,18 +11,22 @@
 			is.width = ds.width;
 			is.height = ds.height;
 			is.position = "absolute";
-			is.left="0";
-			is.top="0";
+			is.left = "-10000px";
+			is.top = "-10000px";
 			is.border = "0";
-			is.display = "none";
 
 			img.src = src + "?" + (+new Date());
 			img.onload = function() {
-				if (div.childNodes.length > 1) {
-					div.removeChild(div.firstChild);
-				}
+				is.left = "0";
+				is.top = "0";
 
-				is.display = "block";
+				if (div.childNodes.length > 1) {
+					setTimeout(function() {
+						div.firstChild.style.display = "none";
+
+						div.removeChild(div.firstChild);
+					}, 20);
+				}
 
 				setTimeout(loadImg, 10);
 			};
