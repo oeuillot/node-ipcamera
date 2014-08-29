@@ -5,11 +5,7 @@ var child = require('child_process');
 var express = require('express');
 var Events = require('events');
 
-var IPCamDecoderStream = require('./lib/ipCamDecoderStream');
-var MpegDecoderStream = require('./lib/mpegDecoderStream');
-var MjpegDecoderStream = require('./lib/mjpegDecoderStream');
-var MultipartMjpegEncoderStream = require('./lib/multipartMjpegEncoderStream');
-var StoreEngine = require('./lib/storeEngine');
+var API = require('./lib/API');
 
 var NO_CACHE_CONTROL = "no-cache, private, no-store, must-revalidate, max-stale=0, max-age=1,post-check=0, pre-check=0";
 
@@ -68,7 +64,7 @@ app.get("/mjpeg", function(req, res) {
 		'Cache-Control': NO_CACHE_CONTROL
 	});
 
-	var stream = new MultipartMjpegEncoderStream({
+	var stream = new API.MultipartMjpegEncoderStream({
 		generateHttpHeader: false,
 		mimeBoundary: mimeBoundary
 	}, res);
@@ -136,9 +132,9 @@ function newRequest() {
 	var running = true;
 	var lastTimestamp;
 	var watchdogInterval;
-	var mpegDecoderStream = new MpegDecoderStream();
-	var mjpegDecoderStream = new MjpegDecoderStream();
-	var ipCamDecoderStream = new IPCamDecoderStream();
+	var mpegDecoderStream = new API.MpegDecoderStream();
+	var mjpegDecoderStream = new API.MjpegDecoderStream();
+	var ipCamDecoderStream = new API.IPCamDecoderStream();
 
 	mjpegDecoderStream.on('jpeg', function(jpeg) {
 		lastTimestamp = Date.now();
@@ -236,7 +232,7 @@ function newRequest() {
 }
 
 if (program.storePath) {
-	var storeEngine = new StoreEngine({
+	var storeEngine = new API.StoreEngine({
 		path: program.storePath,
 		framePerSecond: program.storeFPS,
 		fileDuration: program.storeFileDuration
