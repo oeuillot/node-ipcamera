@@ -12,13 +12,13 @@ var NO_CACHE_CONTROL = "no-cache, private, no-store, must-revalidate, max-stale=
 program.option("-u, --url <url>", "Camera URL");
 program.option("-f, --ffmpeg <path>", "FFmpeg executable path");
 program.option("-a, --ffmpegArgs <parameters>", "FFmpeg arguments");
-program.option("-p, --port <port>", "Http server port");
-program.option("-r, --outputRate <rate>", "FFMpeg video output rate");
-program.option("--inputRate <rate>", "FFMpeg video input rate");
+program.option("-p, --port <port>", "Http server port", parseInt);
+program.option("-r, --outputRate <rate>", "FFMpeg video output rate", parseInt);
+program.option("--inputRate <rate>", "FFMpeg video input rate", parseInt);
 program.option("--localtime", "Add localtime on frame");
 program.option("--fontPath <fontPath>", "Font path used by localtime");
 program.option("--storePath <storePath>", "Path where to store images");
-program.option("--storeTimeout <minutes>", "Delay after which the images were deleted");
+program.option("--storeTimeout <minutes>", "Delay after which the images were deleted", parseInt);
 program.option("--storeFPS <storeFPS>", "Stored frames per second", parseInt);
 program.option("--storeFileDuration <second>", "Duration of each file", parseInt);
 
@@ -84,7 +84,9 @@ app.get("/mjpeg", function(req, res) {
 });
 
 app.get("/mjpeg.html", function(req, res) {
-	res.sendfile('pages/mjpeg.html');
+	res.sendFile('pages/mjpeg.html', {
+		root: __dirname
+	});
 });
 
 app.get("/jpeg", function(req, res) {
@@ -110,11 +112,15 @@ app.get("/jpeg", function(req, res) {
 });
 
 app.get("/jpeg.html", function(req, res) {
-	res.sendfile('pages/jpeg.html');
+	res.sendFile('pages/jpeg.html', {
+		root: __dirname
+	});
 });
 
 app.get("/animjpeg.html", function(req, res) {
-	res.sendfile('pages/animjpeg.html');
+	res.sendFile('pages/animjpeg.html', {
+		root: __dirname
+	});
 });
 
 app.listen(program.port || 8080);
