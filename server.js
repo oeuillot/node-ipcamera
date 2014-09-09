@@ -83,12 +83,6 @@ app.get("/mjpeg", function(req, res) {
 	});
 });
 
-app.get("/mjpeg.html", function(req, res) {
-	res.sendFile('pages/mjpeg.html', {
-		root: __dirname
-	});
-});
-
 app.get("/jpeg", function(req, res) {
 
 	lastJpegEventEmitter.once("jpeg", function sendJpeg(jpeg) {
@@ -111,17 +105,7 @@ app.get("/jpeg", function(req, res) {
 	});
 });
 
-app.get("/jpeg.html", function(req, res) {
-	res.sendFile('pages/jpeg.html', {
-		root: __dirname
-	});
-});
-
-app.get("/animjpeg.html", function(req, res) {
-	res.sendFile('pages/animjpeg.html', {
-		root: __dirname
-	});
-});
+app.use(express.static(__dirname + '/pages'));
 
 app.listen(program.port || 8080);
 
@@ -150,6 +134,10 @@ function newRequest() {
 
 	function stop(response, restart) {
 		if (!running) {
+
+			if (restart) {
+				setTimeout(newRequest, 5000);
+			}
 			return;
 		}
 		running = false;
@@ -177,7 +165,7 @@ function newRequest() {
 		}
 
 		if (restart) {
-			setImmediate(newRequest);
+			setTimeout(newRequest, 5000);
 		}
 	}
 
@@ -224,7 +212,7 @@ function newRequest() {
 	request.on('error', function(e) {
 		console.log('problem with request: ' + e.message);
 
-		if (e.code == 'ECONNRESET') {
+		if (e.code == 'ECONNRESET' || e.code == 'ECONNREFUSED') {
 			stop(null, true);
 			return;
 		}
