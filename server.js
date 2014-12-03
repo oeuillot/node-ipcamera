@@ -4,6 +4,12 @@ var http = require('http');
 var child = require('child_process');
 var express = require('express');
 var Events = require('events');
+var gm = null;
+try {
+	gm = require('gm');
+} catch (x) {
+	// Optional library
+}
 
 var API = require('./lib/API');
 
@@ -85,11 +91,10 @@ app.get("/mjpeg", function(req, res) {
 
 app.get("/jpeg", function(req, res) {
 
-	lastJpegEventEmitter.once("jpeg", function sendJpeg(jpeg) {
-
+	function sendData(jpeg, buffer) {
 		var headers = {
 			'Content-Type': 'image/jpeg',
-			'Content-Length': jpeg.size,
+			'Content-Length': buffer.length,
 			'Transfer-Encoding': 'chunked',
 			'Cache-Control': NO_CACHE_CONTROL,
 		};
@@ -100,8 +105,28 @@ app.get("/jpeg", function(req, res) {
 
 		res.writeHead(200, headers);
 
-		res.write(jpeg.data);
+		res.write(buffer);
 		res.end();
+	}
+
+	lastJpegEventEmitter.once("jpeg", function sendJpeg(jpeg) {
+
+		if (req.query) {
+			var width = req.query.width;
+			if (width && gm) {
+				gm(jpeg.data, "current.jpg").resize(width).toBuffer("JPG", function(err, buffer) {
+					if (error) {
+						console.error(error);
+						res.end();
+						return;
+					}
+					sendData(jpeg, buffer);
+				});
+				return;
+			}
+		}
+
+		sendData(jpeg, jpeg.data);
 	});
 });
 

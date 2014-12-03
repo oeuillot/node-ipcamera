@@ -5,8 +5,9 @@
   "main": "lib/API.js",
   "dependencies": {
     "commander": "latest",
-    "express": "latest"
- },
+    "express": "latest",
+    "gm": "latest"
+},
   "scripts": {
    },
   "repository": "",
