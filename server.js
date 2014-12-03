@@ -114,7 +114,7 @@ app.get("/jpeg", function(req, res) {
 		if (req.query) {
 			var width = req.query.width;
 			if (width && gm) {
-				gm(jpeg.data, "current.jpg").resize(width).toBuffer("JPG", function(err, buffer) {
+				gm(jpeg.data, "current.jpg").resize(width).toBuffer("JPG", function(error, buffer) {
 					if (error) {
 						console.error(error);
 						res.end();
