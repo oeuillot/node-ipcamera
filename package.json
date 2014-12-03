@@ -6,7 +6,8 @@
   "dependencies": {
     "commander": "latest",
     "express": "latest",
-    "gm": "latest"
+    "gm": "latest",
+    "my-buffers-stream": "git://github.com/oeuillot/my-buffers-stream.git",
 },
   "scripts": {
    },
