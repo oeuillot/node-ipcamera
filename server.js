@@ -134,14 +134,9 @@ app.use(express.static(__dirname + '/pages'));
 
 app.listen(program.port || 8080);
 
-var waitingRequest = false;
 newRequest();
 
 function newRequest() {
-	if (waitingRequest) {
-		return;
-	}
-	waitingRequest = true;
 
 	var videoURL = url.parse(program.url);
 	videoURL.headers = {
@@ -152,6 +147,7 @@ function newRequest() {
 	var running = true;
 	var lastTimestamp;
 	var watchdogInterval;
+	var requestNewRequest = false;
 	var mpegDecoderStream = new API.MpegDecoderStream();
 	var mjpegDecoderStream = new API.MjpegDecoderStream();
 	var ipCamDecoderStream = new API.IPCamDecoderStream();
@@ -163,9 +159,9 @@ function newRequest() {
 	});
 
 	function stop(response, restart) {
-		waitingRequest = false;
 		if (!running) {
-			if (restart) {
+			if (restart && !requestNewRequest) {
+				requestNewRequest = true;
 				setTimeout(newRequest, 5000);
 			}
 			return;
@@ -194,7 +190,8 @@ function newRequest() {
 			response.socket.destroy();
 		}
 
-		if (restart) {
+		if (restart && !requestNewRequest) {
+			requestNewRequest = true;
 			setTimeout(newRequest, 5000);
 		}
 	}
