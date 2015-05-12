@@ -134,9 +134,14 @@ app.use(express.static(__dirname + '/pages'));
 
 app.listen(program.port || 8080);
 
+var waitingRequest = false;
 newRequest();
 
 function newRequest() {
+	if (waitingRequest) {
+		return;
+	}
+	waitingRequest = true;
 
 	var videoURL = url.parse(program.url);
 	videoURL.headers = {
@@ -158,8 +163,8 @@ function newRequest() {
 	});
 
 	function stop(response, restart) {
+		waitingRequest = false;
 		if (!running) {
-
 			if (restart) {
 				setTimeout(newRequest, 5000);
 			}
@@ -231,7 +236,6 @@ function newRequest() {
 
 			stop(response, true);
 		});
-
 	});
 
 	request.on('error', function(e) {
