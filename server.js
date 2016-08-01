@@ -1,9 +1,11 @@
-var program = require('commander');
-var url = require('url');
-var http = require('http');
-var child = require('child_process');
-var express = require('express');
-var Events = require('events');
+/*jslint node: true, esversion: 6 */
+
+const program = require('commander');
+const url = require('url');
+const http = require('http');
+const child = require('child_process');
+const express = require('express');
+const Events = require('events');
 var gm = null;
 try {
 	gm = require('gm');
@@ -11,9 +13,9 @@ try {
 	// Optional library
 }
 
-var API = require('./lib/API');
+const API = require('./lib/API');
 
-var NO_CACHE_CONTROL = "no-cache, private, no-store, must-revalidate, max-stale=0, max-age=1,post-check=0, pre-check=0";
+const NO_CACHE_CONTROL = "no-cache, private, no-store, must-revalidate, max-stale=0, max-age=1,post-check=0, pre-check=0";
 
 program.option("-u, --url <url>", "Camera URL");
 program.option("-f, --ffmpeg <path>", "FFmpeg executable path");
@@ -39,7 +41,7 @@ if (!program.ffmpeg) {
 }
 
 program.ffmpegArgs = program.ffmpegArgs ||
-		("-an -r " + (program.inputRate || 20) + " -f m4v -i - -r " + (program.outputRate || 20) + " -qmin 1 -q:v 2 -s 720x576 -f mjpeg");
+	("-an -r " + (program.inputRate || 20) + " -f m4v -i - -r " + (program.outputRate || 20) + " -qmin 1 -q:v 2 -s 720x576 -f mjpeg");
 
 var ffmpegArgs = program.ffmpegArgs.match(/([A-Za-z0-9\-\+:]+)|"(?:\\"|[^"])+"|\-/g);
 for (var i = ffmpegArgs.length - 1; i; i--) {
@@ -47,11 +49,10 @@ for (var i = ffmpegArgs.length - 1; i; i--) {
 }
 
 if (program.localtime && program.fontPath) {
-	ffmpegArgs.push("-vf", "drawtext=text='%{localtime}': fontfile='" + program.fontPath +
-			"': fontsize=20: fontcolor=white@1: x=8: y=8");
+	ffmpegArgs.push("-vf", "drawtext=text='%{localtime}': fontfile='" + program.fontPath + "': fontsize=20: fontcolor=white@1: x=8: y=8");
 }
 
-ffmpegArgs.push("-")
+ffmpegArgs.push("-");
 
 // console.log("args=", ffmpegArgs);
 
@@ -62,7 +63,7 @@ var mimeBoundary = "--OLIVIERVAENVACANCES--";
 
 var app = express();
 
-app.get("/mjpeg", function(req, res) {
+app.get("/mjpeg", (req, res) => {
 
 	res.writeHead(200, {
 		'Content-Type': 'multipart/x-mixed-replace; boundary="' + mimeBoundary + '"',
@@ -77,7 +78,7 @@ app.get("/mjpeg", function(req, res) {
 
 	lastJpegEventEmitter.once("jpeg", function sendJpeg(jpeg) {
 
-		stream.writeJpeg(jpeg, function(error) {
+		stream.writeJpeg(jpeg, function (error) {
 			if (error) {
 				console.error(error);
 				res.end();
@@ -89,7 +90,7 @@ app.get("/mjpeg", function(req, res) {
 	});
 });
 
-app.get("/jpeg", function(req, res) {
+app.get("/jpeg", (req, res) => {
 
 	function sendData(jpeg, buffer) {
 		var headers = {
@@ -109,12 +110,12 @@ app.get("/jpeg", function(req, res) {
 		res.end();
 	}
 
-	lastJpegEventEmitter.once("jpeg", function sendJpeg(jpeg) {
+	lastJpegEventEmitter.once("jpeg", (jpeg) => {
 
 		if (req.query) {
 			var width = req.query.width;
 			if (width && gm) {
-				gm(jpeg.data, "current.jpg").resize(width).toBuffer("JPG", function(error, buffer) {
+				gm(jpeg.data, "current.jpg").resize(width).toBuffer("JPG", (error, buffer) => {
 					if (error) {
 						console.error(error);
 						res.end();
@@ -152,12 +153,17 @@ function newRequest() {
 	var mjpegDecoderStream = new API.MjpegDecoderStream();
 	var ipCamDecoderStream = new API.IPCamDecoderStream();
 
-	mjpegDecoderStream.on('jpeg', function(jpeg) {
+	mjpegDecoderStream.on('jpeg', (jpeg) => {
 		lastTimestamp = Date.now();
 
 		lastJpegEventEmitter.emit('jpeg', jpeg);
 	});
 
+	/**
+	 *
+	 * @param response
+	 * @param {boolean} restart
+	 */
 	function stop(response, restart) {
 		if (!running) {
 			if (restart && !requestNewRequest) {
@@ -193,22 +199,24 @@ function newRequest() {
 		if (restart && !requestNewRequest) {
 			requestNewRequest = true;
 			setTimeout(newRequest, 5000);
+			return;
 		}
 	}
 
-	var request = http.request(videoURL, function(response) {
+	var request = http.request(videoURL, (response) => {
 		// console.log('STATUS: ', response.statusCode);
 		// console.log('HEADERS: ', response.headers);
 
 		if (response.statusCode != 200) {
 			throw new Error("Invalid status code of response " + response.statusCode);
 		}
-		watchdogInterval = setInterval(function() {
+
+		watchdogInterval = setInterval(() => {
 			if (Date.now() - lastTimestamp < 1000 * 20) {
 				return;
 			}
 
-			console.log("Watchdog detect problem ...")
+			console.error("Watchdog detect problem ...");
 
 			stop(response, true);
 
@@ -218,32 +226,29 @@ function newRequest() {
 
 		ffmpeg = child.spawn(program.ffmpeg, ffmpegArgs);
 
-		readable.on("data", function(data) {
-			ffmpeg.stdin.write(data);
-		});
+		readable.on("data", (data) => ffmpeg.stdin.write(data));
 
-		ffmpeg.stdout.on('data', function(data) {
-			mjpegDecoderStream.write(data);
-		});
+		ffmpeg.stdout.on('data', (data) => mjpegDecoderStream.write(data));
 
 		ffmpeg.stderr.pipe(process.stderr);
 
-		ffmpeg.on("exit", function() {
-			console.log("Process exited ! Restart conversion ...")
+		ffmpeg.on("exit", () => {
+			console.error("Process exited ! Restart conversion ...");
 
 			stop(response, true);
 		});
 	});
 
-	request.on('error', function(e) {
-		console.log('problem with request: ' + e.message);
+	request.on('error', (e) => {
+		console.error('problem with request: error=', e);
 
-		if (e.code == 'ECONNRESET' || e.code == 'ECONNREFUSED') {
+		if (e.code == 'ECONNRESET' || e.code == 'ECONNREFUSED' || e.code == 'EHOSTUNREACH') {
 			stop(null, true);
 			return;
 		}
 
 		stop();
+		process.exit(5);
 	});
 
 	request.end();
