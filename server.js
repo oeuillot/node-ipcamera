@@ -243,7 +243,8 @@ function newRequest() {
 		console.error('problem with request: error=', e, 'code=', (e && e.code));
 
 		if (e.code == 'ECONNRESET' || e.code == 'ECONNREFUSED' || e.code == 'EHOSTUNREACH') {
-			stop(null, true);
+			stop(); //(null, true);
+			process.exit(6);
 			return;
 		}
 
