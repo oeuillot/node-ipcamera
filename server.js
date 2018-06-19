@@ -240,7 +240,7 @@ function newRequest() {
 	});
 
 	request.on('error', (e) => {
-		console.error('problem with request: error=', e);
+		console.error('problem with request: error=', e, 'code=', (e && e.code));
 
 		if (e.code == 'ECONNRESET' || e.code == 'ECONNREFUSED' || e.code == 'EHOSTUNREACH') {
 			stop(null, true);
