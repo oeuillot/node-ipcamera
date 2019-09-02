@@ -116,6 +116,8 @@ app.get("/jpeg", (req, res) => {
 
 	lastJpegEventEmitter.once("jpeg", (jpeg) => {
 
+		console.log('Query=', req.query);
+
 		if (req.query) {
 			const width = req.query.width;
 			const quality = req.query.quality;
