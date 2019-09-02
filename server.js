@@ -220,7 +220,6 @@ httpServer.listen(program.port || 8080, (error) => {
 	}
 	debug("listen", "Server is listening ", httpServer.address());
 
-	callback(null, httpServer);
 });
 
 newRequest();
