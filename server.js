@@ -119,6 +119,9 @@ app.get("/jpeg", (req, res) => {
 		if (req.query) {
 			const width = req.query.width;
 			const quality = req.query.quality;
+
+			console.log('Sharp width=', width, 'quality=', quality);
+
 			if ((width || quality !== undefined) && sharp) {
 				let s = sharp(jpeg.data);
 				if (width) {
