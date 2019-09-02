@@ -131,7 +131,7 @@ app.get("/jpeg", (req, res) => {
 					s = s.resize(parseInt(width), undefined);
 				}
 				if (quality !== undefined) {
-					s = s.jpeg({quality});
+					s = s.jpeg({quality: parseInt(quality)});
 				}
 
 				s.toBuffer((error, buffer) => {
@@ -173,7 +173,7 @@ if (program.socketIO) {
 			if ((socket.jpegWidth || socket.jpegQuality !== undefined) && sharp) {
 				let g = sharp(jpeg.data);
 				if (socket.jpegWidth) {
-					g = g.resize(parseInt(socket.jpegWidth), null);
+					g = g.resize(socket.jpegWidth, null);
 				}
 				if (socket.jpegQuality) {
 					g = g.jpeg({quality: socket.jpegQuality});
