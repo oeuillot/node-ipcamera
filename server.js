@@ -117,9 +117,18 @@ app.get("/jpeg", (req, res) => {
 	lastJpegEventEmitter.once("jpeg", (jpeg) => {
 
 		if (req.query) {
-			var width = req.query.width;
-			if (width && sharp) {
-				sharp(jpeg.data).resize(width, null).toBuffer((error, buffer) => {
+			const width = req.query.width;
+			const quality = req.query.quality;
+			if ((width || quality !== undefined) && sharp) {
+				let s = sharp(jpeg.data);
+				if (width) {
+					s = s.resize(width, undefined);
+				}
+				if (quality !== undefined) {
+					s = s.jpeg({quality});
+				}
+
+				s.toBuffer((error, buffer) => {
 					if (error) {
 						console.error(error);
 						res.end();
