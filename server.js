@@ -8,6 +8,7 @@ const express = require('express');
 const Events = require('events');
 const SocketIO = require('socket.io');
 const UUID = require('uuid');
+const debug = require('debug');
 
 var sharp = null;
 try {
