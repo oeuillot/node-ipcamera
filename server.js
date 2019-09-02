@@ -6,9 +6,12 @@ const http = require('http');
 const child = require('child_process');
 const express = require('express');
 const Events = require('events');
-var gm = null;
+const SocketIO = require('socket.io');
+const UUID = require('uuid');
+
+var sharp = null;
 try {
-	gm = require('gm');
+	sharp = require('sharp');
 } catch (x) {
 	// Optional library
 }
@@ -29,6 +32,7 @@ program.option("--storePath <storePath>", "Path where to store images");
 program.option("--storeTimeout <minutes>", "Delay after which the images were deleted", parseInt);
 program.option("--storeFPS <storeFPS>", "Stored frames per second", parseInt);
 program.option("--storeFileDuration <second>", "Duration of each file", parseInt);
+program.option("--socketIO", "Enable socketIO");
 
 program.parse(process.argv);
 
@@ -56,12 +60,12 @@ ffmpegArgs.push("-");
 
 // console.log("args=", ffmpegArgs);
 
-var lastJpegEventEmitter = new Events.EventEmitter();
+const lastJpegEventEmitter = new Events.EventEmitter();
 lastJpegEventEmitter.setMaxListeners(256);
 
-var mimeBoundary = "--OLIVIERVAENVACANCES--";
+const mimeBoundary = "--OLIVIERVAENVACANCES--";
 
-var app = express();
+const app = express();
 
 app.get("/mjpeg", (req, res) => {
 
@@ -114,8 +118,8 @@ app.get("/jpeg", (req, res) => {
 
 		if (req.query) {
 			var width = req.query.width;
-			if (width && gm) {
-				gm(jpeg.data, "current.jpg").resize(width).toBuffer("JPG", (error, buffer) => {
+			if (width && sharp) {
+				sharp(jpeg.data).resize(width, null).toBuffer((error, buffer) => {
 					if (error) {
 						console.error(error);
 						res.end();
@@ -131,9 +135,78 @@ app.get("/jpeg", (req, res) => {
 	});
 });
 
+const httpServer = http.createServer(app);
+
+if (program.socketIO) {
+	const io = SocketIO(httpServer, {
+		path: '/ws'
+	});
+
+	console.log('Enable socketIO');
+
+	io.on('connection', (socket) => {
+		const clientUUID = UUID();
+		socket.clientUUID = clientUUID;
+		console.log('WS user connected uuid=', clientUUID, 'socket=', socket);
+
+		function sendJpeg(jpeg) {
+			console.log('conn=', socket.conn);
+			if (!socket.conn.transport.writable) { // Volatile without resize jpeg
+				console.log('conn not writable');
+				return;
+			}
+			if ((socket.jpegWidth || socket.jpegQuality !== undefined) && sharp) {
+				let g = sharp(jpeg.data);
+				if (socket.jpegWidth) {
+					g = g.resize(socket.jpegWidth, null);
+				}
+				if (socket.jpegQuality) {
+					g = g.jpeg({quality: socket.jpegQuality});
+				}
+
+				g.toBuffer((error, buffer, info) => {
+					if (error) {
+						console.error(error);
+						return;
+					}
+
+					socket.volatile.emit('jpeg', buffer);
+				});
+				return;
+			}
+
+			socket.volatile.emit('jpeg', jpeg.data);
+		}
+
+		socket.on('disconnect', () => {
+			console.log('WS user disconnected uuid=', clientUUID);
+
+			lastJpegEventEmitter.removeListener('jpeg', sendJpeg);
+		});
+
+		lastJpegEventEmitter.on('jpeg', sendJpeg);
+
+		socket.on('set-width', (size) => {
+			socket.jpegWidth = size;
+		});
+
+		socket.on('set-quality', (size) => {
+			socket.jpegQuality = size;
+		});
+	});
+}
+
 app.use(express.static(__dirname + '/pages'));
 
-app.listen(program.port || 8080);
+httpServer.listen(program.port || 8080, (error) => {
+	if (error) {
+		console.error("Server can not listen", error);
+		return;
+	}
+	debug("listen", "Server is listening ", httpServer.address());
+
+	callback(null, httpServer);
+});
 
 newRequest();
 

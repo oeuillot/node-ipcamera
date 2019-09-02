@@ -6,11 +6,12 @@
   "dependencies": {
     "commander": "latest",
     "express": "latest",
-    "gm": "latest",
-    "my-buffers-stream": "git://github.com/oeuillot/my-buffers-stream.git"
-},
-  "scripts": {
-   },
+    "my-buffers-stream": "git://github.com/oeuillot/my-buffers-stream.git",
+    "sharp": "^0.23.0",
+    "socket.io": "^2.2.0",
+    "uuid": "^3.3.3"
+  },
+  "scripts": {},
   "repository": "",
   "keywords": [
     "Node.js",
