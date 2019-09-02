@@ -128,7 +128,7 @@ app.get("/jpeg", (req, res) => {
 			if ((width || quality !== undefined) && sharp) {
 				let s = sharp(jpeg.data);
 				if (width) {
-					s = s.resize(width, undefined);
+					s = s.resize(parseInt(width), undefined);
 				}
 				if (quality !== undefined) {
 					s = s.jpeg({quality});
@@ -173,7 +173,7 @@ if (program.socketIO) {
 			if ((socket.jpegWidth || socket.jpegQuality !== undefined) && sharp) {
 				let g = sharp(jpeg.data);
 				if (socket.jpegWidth) {
-					g = g.resize(socket.jpegWidth, null);
+					g = g.resize(parseInt(socket.jpegWidth), null);
 				}
 				if (socket.jpegQuality) {
 					g = g.jpeg({quality: socket.jpegQuality});
@@ -220,6 +220,7 @@ httpServer.listen(program.port || 8080, (error) => {
 	}
 	debug("listen", "Server is listening ", httpServer.address());
 
+//	callback&	callback(null, httpServer);
 });
 
 newRequest();
