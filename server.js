@@ -89,13 +89,14 @@ app.get("/mjpeg", (req, res) => {
 	}, res);
 
 	setTimeout(function () {
+		console.log('/mjpeg: Sharp width=', width, 'quality=', quality);
+
 		sendMJpeg(res, stream, width, quality);
 	}, 5);
 });
 
 function sendMJpeg(res, stream, width, quality) {
 	lastJpegEventEmitter.once("jpeg", (jpeg) => {
-		console.log('Sharp width=', width, 'quality=', quality);
 
 		if ((width || quality !== undefined) && sharp) {
 			let s = sharp(jpeg.data);
@@ -169,7 +170,7 @@ app.get("/jpeg", (req, res) => {
 			const width = req.query.width;
 			const quality = req.query.quality;
 
-			console.log('Sharp width=', width, 'quality=', quality);
+			console.log('/jpeg: Sharp width=', width, 'quality=', quality);
 
 			if ((width || quality !== undefined) && sharp) {
 				let s = sharp(jpeg.data);
@@ -231,12 +232,12 @@ if (program.socketIO) {
 						return;
 					}
 
-					socket.volatile.emit('jpeg', buffer);
+					socket.binary(true).volatile.emit('jpeg', buffer);
 				});
 				return;
 			}
 
-			socket.volatile.emit('jpeg', jpeg.data);
+			socket.binary(true).volatile.emit('jpeg', jpeg.data);
 		}
 
 		socket.on('disconnect', () => {
