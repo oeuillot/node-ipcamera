@@ -89,7 +89,7 @@ app.get("/mjpeg", (req, res) => {
 	}, res);
 
 	setTimeout(function () {
-		sendJpeg(res, width, quality);
+		sendJpeg(res, stream, width, quality);
 	}, 5);
 });
 
