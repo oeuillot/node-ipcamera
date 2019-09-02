@@ -73,8 +73,8 @@ app.get("/mjpeg", (req, res) => {
 	let width;
 	let quality;
 	if (req.query) {
-		width = parseInt(req.query.width);
-		quality = parseInt(req.query.quality);
+		width = req.query.width && parseInt(req.query.width);
+		quality = req.query.quality && parseInt(req.query.quality);
 	}
 
 	res.writeHead(200, {
