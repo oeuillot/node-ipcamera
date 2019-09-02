@@ -96,7 +96,7 @@ app.get("/mjpeg", (req, res) => {
 				s = s.resize(width, undefined);
 			}
 			if (quality !== undefined) {
-				s = s.jpeg({quality:});
+				s = s.jpeg({quality});
 			}
 
 			s.toBuffer((error, buffer) => {
@@ -118,7 +118,7 @@ app.get("/mjpeg", (req, res) => {
 			});
 			return;
 		}
-		
+
 		stream.writeJpeg(jpeg, function (error) {
 			if (error) {
 				console.error(error);
