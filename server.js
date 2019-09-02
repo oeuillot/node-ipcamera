@@ -89,11 +89,11 @@ app.get("/mjpeg", (req, res) => {
 	}, res);
 
 	setTimeout(function () {
-		sendJpeg(jpeg, width, quality);
+		sendJpeg(res, width, quality);
 	}, 5);
 });
 
-function sendJpeg(jpeg, width, quality) {
+function sendJpeg(res, width, quality) {
 	lastJpegEventEmitter.once("jpeg", function sendJpeg(jpeg) {
 		console.log('Sharp width=', width, 'quality=', quality);
 
@@ -121,7 +121,7 @@ function sendJpeg(jpeg, width, quality) {
 					}
 
 					setTimeout(function () {
-						sendJpeg(jpeg, width, quality);
+						sendJpeg(res, width, quality);
 					}, 5);
 				});
 			});
@@ -136,7 +136,7 @@ function sendJpeg(jpeg, width, quality) {
 			}
 
 			setTimeout(function () {
-				sendJpeg(jpeg, width, quality);
+				sendJpeg(res, width, quality);
 			}, 5);
 		});
 	});
