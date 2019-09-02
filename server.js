@@ -88,7 +88,14 @@ app.get("/mjpeg", (req, res) => {
 		mimeBoundary: mimeBoundary
 	}, res);
 
+	setTimeout(function () {
+		sendJpeg(jpeg, width, quality);
+	}, 5);
+});
+
+function sendJpeg(jpeg, width, quality) {
 	lastJpegEventEmitter.once("jpeg", function sendJpeg(jpeg) {
+		console.log('Sharp width=', width, 'quality=', quality);
 
 		if ((width || quality !== undefined) && sharp) {
 			let s = sharp(jpeg.data);
@@ -113,7 +120,9 @@ app.get("/mjpeg", (req, res) => {
 						return;
 					}
 
-					lastJpegEventEmitter.once("jpeg", sendJpeg);
+					setTimeout(function () {
+						sendJpeg(jpeg, width, quality);
+					}, 5);
 				});
 			});
 			return;
@@ -126,10 +135,13 @@ app.get("/mjpeg", (req, res) => {
 				return;
 			}
 
-			lastJpegEventEmitter.once("jpeg", sendJpeg);
+			setTimeout(function () {
+				sendJpeg(jpeg, width, quality);
+			}, 5);
 		});
 	});
-});
+
+}
 
 app.get("/jpeg", (req, res) => {
 
@@ -152,8 +164,6 @@ app.get("/jpeg", (req, res) => {
 	}
 
 	lastJpegEventEmitter.once("jpeg", (jpeg) => {
-
-		console.log('Query=', req.query);
 
 		if (req.query) {
 			const width = req.query.width;
