@@ -70,6 +70,13 @@ const app = express();
 
 app.get("/mjpeg", (req, res) => {
 
+	let width;
+	let quality;
+	if (req.query) {
+		width = parseInt(req.query.width);
+		quality = parseInt(req.query.quality);
+	}
+
 	res.writeHead(200, {
 		'Content-Type': 'multipart/x-mixed-replace; boundary="' + mimeBoundary + '"',
 		'Transfer-Encoding': 'chunked',
@@ -83,6 +90,35 @@ app.get("/mjpeg", (req, res) => {
 
 	lastJpegEventEmitter.once("jpeg", function sendJpeg(jpeg) {
 
+		if ((width || quality !== undefined) && sharp) {
+			let s = sharp(jpeg.data);
+			if (width) {
+				s = s.resize(width, undefined);
+			}
+			if (quality !== undefined) {
+				s = s.jpeg({quality:});
+			}
+
+			s.toBuffer((error, buffer) => {
+				if (error) {
+					console.error(error);
+					res.end();
+					return;
+				}
+
+				stream.writeJpeg({...jpeg, data: buffer}, function (error) {
+					if (error) {
+						console.error(error);
+						res.end();
+						return;
+					}
+
+					lastJpegEventEmitter.once("jpeg", sendJpeg);
+				});
+			});
+			return;
+		}
+		
 		stream.writeJpeg(jpeg, function (error) {
 			if (error) {
 				console.error(error);
