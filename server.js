@@ -214,11 +214,11 @@ if (program.socketIO) {
 		function sendJpeg(jpeg) {
 //			console.log('conn=', socket.conn);
 			if (!socket.conn.transport.writable) { // Volatile without resize jpeg
-				console.log('conn not writable');
+				console.log('client=', clientUUID, 'conn not writable');
 				return;
 			}
 
-			console.log('conn writable width=', socket.jpegWidth, 'quality=', jpegQuality);
+			console.log('client=', clientUUID, 'conn writable width=', socket.jpegWidth, 'quality=', socket.jpegQuality);
 
 			const now = Date.now();
 			if (!socket.lastTimestamp || now - socket.lastTimestamp > 1000) {
