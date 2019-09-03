@@ -212,11 +212,24 @@ if (program.socketIO) {
 		console.log('WS user connected uuid=', clientUUID, 'socket=', socket);
 
 		function sendJpeg(jpeg) {
-			console.log('conn=', socket.conn);
+//			console.log('conn=', socket.conn);
 			if (!socket.conn.transport.writable) { // Volatile without resize jpeg
 				console.log('conn not writable');
 				return;
 			}
+
+			console.log('conn writable width=', socket.jpegWidth, 'quality=', jpegQuality);
+
+			const now = Date.now();
+			if (!socket.lastTimestamp || now - socket.lastTimestamp > 1000) {
+				socket.emit('timestamp', {
+					timestamp: jpeg.date
+				});
+
+				socket.lastTimestamp = now;
+			}
+
+
 			if ((socket.jpegWidth || socket.jpegQuality !== undefined) && sharp) {
 				let g = sharp(jpeg.data);
 				if (socket.jpegWidth) {
