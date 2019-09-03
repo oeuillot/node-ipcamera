@@ -262,11 +262,11 @@ if (program.socketIO) {
 		lastJpegEventEmitter.on('jpeg', sendJpeg);
 
 		socket.on('set-width', (size) => {
-			socket.jpegWidth = size;
+			socket.jpegWidth = Math.round(size);
 		});
 
 		socket.on('set-quality', (size) => {
-			socket.jpegQuality = size;
+			socket.jpegQuality = Math.round(size);
 		});
 	});
 }
